@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoffeeExport Manager · RITECH SAS</title>
+<meta name="description" content="Sistema web para administrar las exportaciones de café y cacao de Colombia hacia la Unión Europea.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3b35'/%3E%3Cellipse cx='32' cy='34' rx='13' ry='19' transform='rotate(25 32 34)' fill='%236ee0c6'/%3E%3Cpath d='M26 50C32 38 32 30 38 18' stroke='%230b3b35' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="login-view" hidden>
+  <div class="login-hero">
+    <div id="hero-logo"></div>
+    <h1>CoffeeExport<small>Manager</small></h1>
+    <p class="lead">Conectando el sabor de Colombia<br>con el mundo</p>
+    <p class="sub">Exportación de café y cacao a la Unión Europea</p>
+    <div class="mt-5 small opacity-75">© 2026 RITECH SAS</div>
+  </div>
+  <div class="login-panel">
+    <form class="login-box" id="login-form" novalidate autocomplete="off">
+      <h2>Iniciar sesión</h2>
+      <p class="text-muted mb-4">Ingresa tus credenciales para acceder al sistema</p>
+      <div id="login-error" class="alert alert-danger py-2 small" role="alert" hidden></div>
+      <div class="mb-3 input-icon">
+        <i class="bi bi-envelope lead-i"></i>
+        <input type="email" class="form-control" id="login-email" placeholder="Usuario o correo electrónico" aria-label="Correo electrónico" required>
+      </div>
+      <div class="mb-3 input-icon">
+        <i class="bi bi-lock lead-i"></i>
+        <input type="password" class="form-control" id="login-pass" placeholder="Contraseña" aria-label="Contraseña" required>
+        <button type="button" class="toggle-pass" id="toggle-pass" aria-label="Mostrar u ocultar contraseña"><i class="bi bi-eye"></i></button>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="login-remember"><label class="form-check-label small" for="login-remember">Recordarme</label></div>
+        <a href="#" class="small" id="forgot">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button class="btn btn-cem w-100 py-2" type="submit">Iniciar sesión</button>
+      <div class="demo-users mt-4">
+        <div class="small text-muted"><i class="bi bi-info-circle"></i> Modo demostración · clic para autocompletar un rol</div>
+        <div id="demo-users"></div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+  <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+    <div class="brand"><span id="side-logo"></span><div class="name">CoffeeExport<small>Manager</small></div></div>
+    <ul class="nav-cem" id="nav"></ul>
+    <div class="side-foot">RITECH SAS · Sprint 2<br>Prototipo de interfaz</div>
+  </aside>
+  <div class="sidebar-backdrop" id="backdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
+      <div class="search">
+        <i class="bi bi-search"></i>
+        <input type="search" class="form-control form-control-sm" id="gsearch" placeholder="Buscar…" aria-label="Búsqueda global" autocomplete="off">
+        <div class="search-results" id="gsearch-res" hidden></div>
+      </div>
+      <div class="ms-auto d-flex align-items-center gap-3">
+        <div class="dropdown">
+          <button class="bell" data-bs-toggle="dropdown" aria-label="Notificaciones"><i class="bi bi-bell"></i><span class="dot" id="bell-n" hidden>0</span></button>
+          <div class="dropdown-menu dropdown-menu-end p-0" style="width:320px;max-height:380px;overflow:auto" id="bell-menu"></div>
+        </div>
+        <div class="dropdown">
+          <button class="btn p-0 d-flex align-items-center gap-2 border-0" data-bs-toggle="dropdown" aria-label="Menú de usuario">
+            <span class="avatar" id="u-avatar">A</span>
+            <span class="text-start user-meta lh-1"><span class="fw-semibold small d-block" id="u-name">Admin</span><small class="text-muted" id="u-role" style="font-size:.7rem">Administrador</small></span>
+            <i class="bi bi-chevron-down small text-muted"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><span class="dropdown-item-text small text-muted" id="u-mail"></span></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="modal fade" id="modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="modal-dlg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-foot"></div>
+    </div>
+  </div>
+</div>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
