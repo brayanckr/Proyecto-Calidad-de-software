@@ -1,0 +1,162 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam ActorBorderColor #4E342E
+skinparam ActorBackgroundColor #D7CCC8
+skinparam ActorFontColor #3E2723
+skinparam UsecaseBorderColor #2E7D32
+skinparam UsecaseBackgroundColor #E8F5E9
+skinparam UsecaseFontColor #1B1B1B
+skinparam RectangleBorderColor #6D4C41
+skinparam RectangleBackgroundColor #FFF8F2
+skinparam RectangleFontColor #3E2723
+skinparam ArrowColor #5D4037
+skinparam ArrowFontColor #3E2723
+skinparam EntityBackgroundColor #FFF8F2
+skinparam EntityBorderColor #6D4C41
+skinparam ClassBackgroundColor #FFF8F2
+skinparam ClassBorderColor #6D4C41
+skinparam ClassFontColor #1B1B1B
+skinparam ClassAttributeFontColor #1B1B1B
+skinparam ClassHeaderBackgroundColor #D7CCC8
+hide circle
+skinparam linetype ortho
+entity roles {
+  * id : BIGINT
+    nombre : VARCHAR
+    descripcion : VARCHAR
+    created_at : TIMESTAMP
+}
+entity permisos {
+  * id : BIGINT
+    codigo : VARCHAR
+    descripcion : VARCHAR
+}
+entity roles_permisos {
+  * rol_id : BIGINT
+  * permiso_id : BIGINT
+}
+entity usuarios {
+  * id : BIGINT
+    nombre : VARCHAR
+    email : VARCHAR
+    password_hash : VARCHAR
+  # rol_id : BIGINT
+    activo : BOOLEAN
+    ultimo_acceso : DATETIME
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+entity clientes {
+  * id : BIGINT
+    nombre : VARCHAR
+    pais : CHAR
+    identificacion_fiscal : VARCHAR
+    contacto_nombre : VARCHAR
+    contacto_email : VARCHAR
+    contacto_telefono : VARCHAR
+    direccion : VARCHAR
+    consentimiento_datos : BOOLEAN
+    fecha_consentimiento : DATETIME
+    activo : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+entity productos {
+  * id : BIGINT
+    codigo : VARCHAR
+    nombre : VARCHAR
+    tipo : ENUM
+    variedad : VARCHAR
+    precio_usd_kg : DECIMAL
+    activo : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+entity bodegas {
+  * id : BIGINT
+    nombre : VARCHAR
+    ciudad : VARCHAR
+    activa : BOOLEAN
+}
+entity inventario {
+  * id : BIGINT
+  # producto_id : BIGINT
+  # bodega_id : BIGINT
+    cantidad_kg : DECIMAL
+    stock_minimo_kg : DECIMAL
+    updated_at : TIMESTAMP
+}
+entity exportaciones {
+  * id : BIGINT
+    codigo : VARCHAR
+  # cliente_id : BIGINT
+    pais_destino : CHAR
+    puerto_salida : VARCHAR
+    puerto_llegada : VARCHAR
+    fecha_envio : DATE
+    estado : ENUM
+  # usuario_creador_id : BIGINT
+    observaciones : VARCHAR
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+entity detalle_exportacion {
+  * id : BIGINT
+  # exportacion_id : BIGINT
+  # producto_id : BIGINT
+    cantidad_kg : DECIMAL
+    precio_unitario : DECIMAL
+    subtotal : DECIMAL
+}
+entity movimientos_inventario {
+  * id : BIGINT
+  # inventario_id : BIGINT
+    tipo : ENUM
+    cantidad_kg : DECIMAL
+    motivo : VARCHAR
+  # exportacion_id : BIGINT
+  # usuario_id : BIGINT
+    created_at : TIMESTAMP
+}
+entity documentos {
+  * id : BIGINT
+  # exportacion_id : BIGINT
+    tipo : ENUM
+    nombre_archivo : VARCHAR
+    ruta_archivo : VARCHAR
+    estado_validacion : ENUM
+  # subido_por : BIGINT
+    created_at : TIMESTAMP
+}
+entity pagos {
+  * id : BIGINT
+  # exportacion_id : BIGINT
+    monto : DECIMAL
+    moneda : CHAR
+    metodo : ENUM
+    referencia : VARCHAR
+    fecha_pago : DATE
+    estado : ENUM
+  # registrado_por : BIGINT
+    created_at : TIMESTAMP
+}
+roles ||--o{ usuarios
+roles ||--o{ roles_permisos
+permisos ||--o{ roles_permisos
+usuarios ||--o{ exportaciones
+clientes ||--o{ exportaciones
+exportaciones ||--|{ detalle_exportacion
+productos ||--o{ detalle_exportacion
+exportaciones ||--o{ documentos
+exportaciones ||--o{ pagos
+productos ||--o{ inventario
+bodegas ||--o{ inventario
+inventario ||--o{ movimientos_inventario
+exportaciones |o--o{ movimientos_inventario
+usuarios ||--o{ movimientos_inventario
+usuarios ||--o{ documentos
+usuarios ||--o{ pagos
+@enduml
