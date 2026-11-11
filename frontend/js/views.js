@@ -18,8 +18,8 @@ const selectBox = (id, opts) => `<select class="form-select" id="${id}" aria-lab
 const newBtn = (label, id) => `<button class="btn btn-cem" id="${id}"><i class="bi bi-plus-lg me-1"></i>${label}</button>`;
 const nrm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const REQ_MAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const cliName = id => (byId(DBx().clientes, id) || {}).nombre || "—";
-const prodName = id => (byId(DBx().productos, id) || {}).nombre || "—";
+const cliName = id => (byId(DBx().clientes, id) || {}).nombre || "-";
+const prodName = id => (byId(DBx().productos, id) || {}).nombre || "-";
 const expOf = id => byId(DBx().exportaciones, id);
 
 /* ======================================================= DASHBOARD */
@@ -29,16 +29,16 @@ Views.dashboard = () => {
   const valid = d.exportaciones.filter(e => !["CANCELADA", "BORRADOR"].includes(e.estado));
   const ventas = m => valid.filter(e => ym(e.fecha_envio) === m).reduce((a, e) => a + totalExp(e), 0);
   const cnt = m => d.exportaciones.filter(e => ym(e.fecha_envio) === m).length;
-  const delta = (a, b) => { if (!b) return `<span class="delta flat">— vs mes anterior</span>`; const p = Math.round((a - b) / b * 100); return `<span class="delta ${p >= 0 ? "up" : "down"}"><i class="bi bi-arrow-${p >= 0 ? "up" : "down"}-short"></i>${Math.abs(p)}% vs. mes anterior</span>`; };
+  const delta = (a, b) => { if (!b) return `<span class="delta flat">- vs mes anterior</span>`; const p = Math.round((a - b) / b * 100); return `<span class="delta ${p >= 0 ? "up" : "down"}"><i class="bi bi-arrow-${p >= 0 ? "up" : "down"}-short"></i>${Math.abs(p)}% vs. mes anterior</span>`; };
   const act = d.clientes.filter(c => c.activo).length;
   const kpi = (ico, cls, lbl, val, dl) => `<div class="col-6 col-xl-3"><div class="card-cem kpi h-100"><div class="ico ${cls}"><i class="bi ${ico}"></i></div><div><div class="lbl">${lbl}</div><div class="val">${val}</div>${dl}</div></div></div>`;
   const ult = [...d.exportaciones].sort((a, b) => b.fecha_envio.localeCompare(a.fecha_envio)).slice(0, 5);
   $("#view").innerHTML = pageHead("Dashboard", "Resumen general del sistema") + `
   <div class="row g-3 mb-3">
-    ${kpi("bi-truck", "", "Total Exportaciones", d.exportaciones.length, delta(cnt(mes), cnt(prev)))}
-    ${kpi("bi-people", "blue", "Clientes Activos", act, `<span class="delta flat">${d.clientes.length} registrados</span>`)}
-    ${kpi("bi-boxes", "coffee", "Inventario Disponible", `${nf(totalInventario())} <small>kg</small>`, `<span class="delta ${alertasStock().length ? "down" : "up"}">${alertasStock().length ? alertasStock().length + " producto(s) bajo mínimo" : "Stock saludable"}</span>`)}
-    ${kpi("bi-currency-dollar", "amber", "Ventas del mes", `${usd0(ventas(mes))} <small>USD</small>`, delta(ventas(mes), ventas(prev)))}
+    ${kpi("bi-truck", "", "Total Exportaciones", kv(d.exportaciones.length), delta(cnt(mes), cnt(prev)))}
+    ${kpi("bi-people", "blue", "Clientes Activos", kv(act), `<span class="delta flat">${d.clientes.length} registrados</span>`)}
+    ${kpi("bi-boxes", "coffee", "Inventario Disponible", `${kv(totalInventario())} <small>kg</small>`, `<span class="delta ${alertasStock().length ? "down" : "up"}">${alertasStock().length ? alertasStock().length + " producto(s) bajo mínimo" : "Stock saludable"}</span>`)}
+    ${kpi("bi-currency-dollar", "amber", "Ventas del mes", `${kv(ventas(mes), "usd0")} <small>USD</small>`, delta(ventas(mes), ventas(prev)))}
   </div>
   <div class="row g-3 mb-3">
     <div class="col-lg-7"><div class="card-cem h-100"><div class="card-h">Exportaciones por país</div><div class="card-b"><div class="chart-box"><canvas id="ch-pais" aria-label="Exportaciones por país" role="img"></canvas></div></div></div></div>
@@ -50,12 +50,12 @@ Views.dashboard = () => {
     </tbody></table></div></div>`;
   const porPais = {}; d.exportaciones.filter(e => e.estado !== "CANCELADA").forEach(e => porPais[e.pais] = (porPais[e.pais] || 0) + 1);
   const top = Object.entries(porPais).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  mkChart("ch-pais", {type:"bar", data:{labels:top.map(t => EU[t[0]]), datasets:[{label:"Exportaciones", data:top.map(t => t[1]), backgroundColor:"#0e7c6b", borderRadius:6}]},
-    options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}, grid:{color:"#eef3f2"}}, x:{grid:{display:false}}}}});
+  mkChart("ch-pais", {type:"bar", data:{labels:top.map(t => EU[t[0]]), datasets:[{label:"Exportaciones", data:top.map(t => t[1]), backgroundColor:chartAccent(), borderRadius:6}]},
+    options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}, grid:{color:chartGrid()}}, x:{grid:{display:false}}}}});
   const kgp = {}; valid.forEach(e => e.lineas.forEach(l => kgp[l.producto_id] = (kgp[l.producto_id] || 0) + l.kg));
   const tp = Object.entries(kgp).sort((a, b) => b[1] - a[1]); const t4 = tp.slice(0, 4), otros = tp.slice(4).reduce((a, x) => a + x[1], 0);
   const labels = t4.map(x => prodName(+x[0])).concat(otros ? ["Otros"] : []), vals = t4.map(x => x[1]).concat(otros ? [otros] : []);
-  mkChart("ch-prod", {type:"doughnut", data:{labels, datasets:[{data:vals, backgroundColor:PALETTE, borderWidth:2}]},
+  mkChart("ch-prod", {type:"doughnut", data:{labels, datasets:[{data:vals, backgroundColor:palette(), borderWidth:2}]},
     options:{maintainAspectRatio:false, cutout:"62%", plugins:{legend:{position:"right", labels:{boxWidth:10, font:{size:11}}}, tooltip:{callbacks:{label:c => `${c.label}: ${nf(c.parsed)} kg`}}}}});
 };
 
@@ -108,9 +108,9 @@ Views.productos = () => {
     const q = nrm(st.q); const rows = DBx().productos.filter(p => (!q || nrm(p.nombre + p.codigo + p.variedad).includes(q)) && (!st.tipo || p.tipo === st.tipo) && (!st.estado || String(+p.activo) === st.estado));
     const pg = paginate(rows, st.page, 6); st.page = pg.page;
     $("#tbl").innerHTML = tableCard(["Producto", "Tipo", "Variedad", "Precio (USD/kg)", "Stock", "Estado", "Acciones"], pg.rows.map(p => { const s = stockProducto(p.id);
-      return `<tr><td><span class="pimg ${p.tipo === "CACAO" ? "cacao" : ""} me-2">${p.tipo === "CACAO" ? "🍫" : "☕"}</span><span class="fw-semibold">${esc(p.nombre)}</span><div class="small text-muted ms-5 ps-1">${esc(p.codigo)}</div></td>
-      <td>${p.tipo === "CAFE" ? "Café" : "Cacao"}</td><td>${esc(p.variedad || "—")}</td><td class="fw-semibold">${usd(p.precio)}</td><td>${kg(s)}</td><td>${p.activo ? badge("Activo", "st-green") : badge("Inactivo", "st-gray")}</td>
-      <td class="text-nowrap">${w ? `<button class="btn-icon" data-edit="${p.id}" aria-label="Editar ${esc(p.nombre)}" title="Editar"><i class="bi bi-pencil-square"></i></button><button class="btn-icon ${p.activo ? "del" : ""}" data-tog="${p.id}" aria-label="${p.activo ? "Desactivar" : "Activar"} ${esc(p.nombre)}" title="${p.activo ? "Desactivar" : "Activar"}"><i class="bi ${p.activo ? "bi-slash-circle" : "bi-check-circle"}"></i></button>` : "—"}</td></tr>`; }).join(""), pg, "productos", "No se encontraron productos");
+      return `<tr><td><span class="pimg ${p.tipo === "CACAO" ? "cacao" : ""} me-2"><i class="bi ${p.tipo === "CACAO" ? "bi-cookie" : "bi-cup-hot"}"></i><img src="${fotoProducto(p, 120)}" alt="" loading="lazy" onerror="this.remove()"></span><span class="fw-semibold">${esc(p.nombre)}</span><div class="small text-muted ms-5 ps-1">${esc(p.codigo)}</div></td>
+      <td>${p.tipo === "CAFE" ? "Café" : "Cacao"}</td><td>${esc(p.variedad || "-")}</td><td class="fw-semibold">${usd(p.precio)}</td><td>${kg(s)}</td><td>${p.activo ? badge("Activo", "st-green") : badge("Inactivo", "st-gray")}</td>
+      <td class="text-nowrap">${w ? `<button class="btn-icon" data-edit="${p.id}" aria-label="Editar ${esc(p.nombre)}" title="Editar"><i class="bi bi-pencil-square"></i></button><button class="btn-icon ${p.activo ? "del" : ""}" data-tog="${p.id}" aria-label="${p.activo ? "Desactivar" : "Activar"} ${esc(p.nombre)}" title="${p.activo ? "Desactivar" : "Activar"}"><i class="bi ${p.activo ? "bi-slash-circle" : "bi-check-circle"}"></i></button>` : "-"}</td></tr>`; }).join(""), pg, "productos", "No se encontraron productos");
     bindPager($("#tbl"), st, draw);
     $$("[data-edit]").forEach(b => b.onclick = () => prodForm(byId(DBx().productos, b.dataset.edit)));
     $$("[data-tog]").forEach(b => b.onclick = async () => { const p = byId(DBx().productos, b.dataset.tog);
@@ -139,9 +139,9 @@ Views.inventario = () => {
   const alerts = alertasStock();
   $("#view").innerHTML = pageHead("Inventario", "Consulta y control de stock en tiempo real", w ? newBtn("Registrar movimiento", "new-mov") : "") + `
   <div class="row g-3 mb-3">
-    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico coffee"><i class="bi bi-boxes"></i></div><div><div class="lbl">Stock total</div><div class="val">${nf(totalInventario())} <small>kg</small></div></div></div></div>
-    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-exclamation-triangle"></i></div><div><div class="lbl">Productos bajo el mínimo</div><div class="val">${alerts.length}</div></div></div></div>
-    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-building"></i></div><div><div class="lbl">Bodegas</div><div class="val">${d.bodegas.length}</div></div></div></div>
+    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico coffee"><i class="bi bi-boxes"></i></div><div><div class="lbl">Stock total</div><div class="val">${kv(totalInventario())} <small>kg</small></div></div></div></div>
+    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-exclamation-triangle"></i></div><div><div class="lbl">Productos bajo el mínimo</div><div class="val">${kv(alerts.length)}</div></div></div></div>
+    <div class="col-sm-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-building"></i></div><div><div class="lbl">Bodegas</div><div class="val">${kv(d.bodegas.length)}</div></div></div></div>
   </div>
   ${alerts.length ? `<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><b>Stock bajo el mínimo:</b> ${alerts.map(a => `${esc(a.p.nombre)} (${nf(a.stock)} de ${nf(a.min)} kg)`).join(" · ")}</div>` : ""}
   <ul class="nav nav-tabs mb-3" id="inv-tabs"><li class="nav-item"><button class="nav-link" data-tab="stock">Existencias</button></li><li class="nav-item"><button class="nav-link" data-tab="mov">Movimientos</button></li></ul>
@@ -160,7 +160,7 @@ Views.inventario = () => {
       const rows = d.movimientos.filter(m => { const i = byId(d.inventario, m.inv_id); return (!q || nrm(prodName(i.producto_id)).includes(q)) && (!st.bodega || i.bodega_id === +st.bodega); });
       const pg = paginate(rows, st.mpage, 7); st.mpage = pg.page; const tcls = {ENTRADA:"st-green", SALIDA:"st-orange", AJUSTE:"st-blue"};
       $("#tbl").innerHTML = tableCard(["Fecha", "Producto", "Bodega", "Tipo", "Cantidad", "Motivo", "Usuario"], pg.rows.map(m => { const i = byId(d.inventario, m.inv_id);
-        return `<tr><td>${new Date(m.fecha).toLocaleString("es-CO", {dateStyle:"short", timeStyle:"short"})}</td><td>${esc(prodName(i.producto_id))}</td><td>${esc(byId(d.bodegas, i.bodega_id).nombre)}</td><td>${badge(m.tipo, tcls[m.tipo])}</td><td>${nf(m.kg)} kg</td><td>${esc(m.motivo || "—")}</td><td>${esc(m.usuario)}</td></tr>`; }).join(""), pg, "movimientos", "Aún no hay movimientos registrados");
+        return `<tr><td>${new Date(m.fecha).toLocaleString("es-CO", {dateStyle:"short", timeStyle:"short"})}</td><td>${esc(prodName(i.producto_id))}</td><td>${esc(byId(d.bodegas, i.bodega_id).nombre)}</td><td>${badge(m.tipo, tcls[m.tipo])}</td><td>${nf(m.kg)} kg</td><td>${esc(m.motivo || "-")}</td><td>${esc(m.usuario)}</td></tr>`; }).join(""), pg, "movimientos", "Aún no hay movimientos registrados");
     }
     $$("[data-pg]").forEach(a => a.onclick = e => { e.preventDefault(); if (a.parentElement.classList.contains("disabled")) return; st[st.tab === "stock" ? "page" : "mpage"] = +a.dataset.pg; draw(); });
     $$("[data-min]").forEach(b => b.onclick = () => { const i = byId(d.inventario, b.dataset.min);
@@ -208,7 +208,7 @@ function expDetail(id, redraw) {
   openModal({title:`Exportación ${e.codigo}`, size:"modal-lg", hideFoot:true, body:`
     <div class="row g-3 mb-3"><div class="col-md-6"><div class="text-muted small">Cliente</div><b>${esc(cliName(e.cliente_id))}</b></div><div class="col-md-6"><div class="text-muted small">Estado</div>${estadoExp(e.estado)}</div>
     <div class="col-md-4"><div class="text-muted small">País destino</div>${esc(EU[e.pais])}</div><div class="col-md-4"><div class="text-muted small">Puerto de salida</div>${esc(e.puerto_salida)}</div><div class="col-md-4"><div class="text-muted small">Puerto de llegada</div>${esc(e.puerto_llegada)}</div>
-    <div class="col-md-4"><div class="text-muted small">Fecha de envío</div>${fdate(e.fecha_envio)}</div><div class="col-md-8"><div class="text-muted small">Observaciones</div>${esc(e.obs || "—")}</div></div>
+    <div class="col-md-4"><div class="text-muted small">Fecha de envío</div>${fdate(e.fecha_envio)}</div><div class="col-md-8"><div class="text-muted small">Observaciones</div>${esc(e.obs || "-")}</div></div>
     <table class="table table-cem table-sm"><thead><tr><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Precio USD/kg</th><th class="text-end">Subtotal</th></tr></thead><tbody>
     ${e.lineas.map(l => `<tr><td>${esc(prodName(l.producto_id))}</td><td class="text-end">${kg(l.kg)}</td><td class="text-end">${usd(l.precio)}</td><td class="text-end">${usd(l.kg * l.precio)}</td></tr>`).join("")}
     <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end">${usd(tot)}</td></tr></tbody></table>
@@ -343,9 +343,9 @@ Views.pagos = () => {
   const porCobrar = facturable.reduce((a, e) => a + Math.max(0, totalExp(e) - pagadoExp(e.id)), 0);
   const conf = d.pagos.filter(p => p.estado === "CONFIRMADO").reduce((a, p) => a + aUSD(p.monto, p.moneda), 0), pend = d.pagos.filter(p => p.estado === "PENDIENTE").reduce((a, p) => a + aUSD(p.monto, p.moneda), 0);
   $("#view").innerHTML = pageHead("Gestión de Pagos", "Registra y consulta los pagos de tus exportaciones", w ? newBtn("Registrar Pago", "new-pay") : "") + `
-  <div class="row g-3 mb-3"><div class="col-sm-4"><div class="card-cem kpi"><div class="ico"><i class="bi bi-check2-circle"></i></div><div><div class="lbl">Confirmado (USD eq.)</div><div class="val">${usd0(conf)}</div></div></div></div>
-  <div class="col-sm-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-hourglass-split"></i></div><div><div class="lbl">Pendiente de confirmar</div><div class="val">${usd0(pend)}</div></div></div></div>
-  <div class="col-sm-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-cash-stack"></i></div><div><div class="lbl">Saldo por cobrar</div><div class="val">${usd0(porCobrar)}</div><span class="delta flat">Tasa EUR/USD: ${d.meta.tasaEurUsd}</span></div></div></div></div>
+  <div class="row g-3 mb-3"><div class="col-sm-4"><div class="card-cem kpi"><div class="ico"><i class="bi bi-check2-circle"></i></div><div><div class="lbl">Confirmado (USD eq.)</div><div class="val">${kv(conf, "usd0")}</div></div></div></div>
+  <div class="col-sm-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-hourglass-split"></i></div><div><div class="lbl">Pendiente de confirmar</div><div class="val">${kv(pend, "usd0")}</div></div></div></div>
+  <div class="col-sm-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-cash-stack"></i></div><div><div class="lbl">Saldo por cobrar</div><div class="val">${kv(porCobrar, "usd0")}</div><span class="delta flat">Tasa EUR/USD: ${d.meta.tasaEurUsd}</span></div></div></div></div>
   <div class="toolbar">${searchBox("f-q", "Buscar pago...")}${selectBox("f-est", [["", "Todos los estados"], ...Object.entries(pst).map(([k, v]) => [k, v[0]])])}</div><div id="tbl"></div>`;
   const draw = () => {
     const q = nrm(st.q); const rows = [...d.pagos].sort((a, b) => b.id - a.id).filter(p => { const e = expOf(p.exportacion_id); return (!q || nrm(e.codigo + cliName(e.cliente_id) + p.ref).includes(q)) && (!st.estado || p.estado === st.estado); });
@@ -397,22 +397,23 @@ Views.reportes = () => {
     else { title = "Existencias actuales"; head = ["Producto", "Bodega", "Stock (kg)", "Mínimo (kg)", "Estado"]; rows = d.inventario.map(i => [prodName(i.producto_id), byId(d.bodegas, i.bodega_id).nombre, i.kg, i.min, i.min > 0 && i.kg < i.min ? "Bajo mínimo" : "Normal"]); }
     window._reporte = {title, head, rows, desde, hasta};
     $("#r-out").innerHTML = `<div class="row g-3 mb-3">
-      <div class="col-md-4"><div class="card-cem kpi"><div class="ico"><i class="bi bi-truck"></i></div><div><div class="lbl">Total Exportaciones</div><div class="val">${exps.length}</div></div></div></div>
-      <div class="col-md-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-currency-dollar"></i></div><div><div class="lbl">Ventas Totales</div><div class="val">${usd0(ventas)} <small>USD</small></div></div></div></div>
-      <div class="col-md-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-people"></i></div><div><div class="lbl">Clientes con envíos</div><div class="val">${cli}</div></div></div></div></div>
+      <div class="col-md-4"><div class="card-cem kpi"><div class="ico"><i class="bi bi-truck"></i></div><div><div class="lbl">Total Exportaciones</div><div class="val">${kv(exps.length)}</div></div></div></div>
+      <div class="col-md-4"><div class="card-cem kpi"><div class="ico amber"><i class="bi bi-currency-dollar"></i></div><div><div class="lbl">Ventas Totales</div><div class="val">${kv(ventas, "usd0")} <small>USD</small></div></div></div></div>
+      <div class="col-md-4"><div class="card-cem kpi"><div class="ico blue"><i class="bi bi-people"></i></div><div><div class="lbl">Clientes con envíos</div><div class="val">${kv(cli)}</div></div></div></div></div>
     ${exps.length ? `<div class="row g-3 mb-3"><div class="col-lg-6"><div class="card-cem h-100"><div class="card-h">Exportaciones por país</div><div class="card-b"><div class="chart-box"><canvas id="rc-pais" role="img" aria-label="Exportaciones por país"></canvas></div></div></div></div>
       <div class="col-lg-6"><div class="card-cem h-100"><div class="card-h">Productos más vendidos (USD)</div><div class="card-b"><div class="chart-box"><canvas id="rc-prod" role="img" aria-label="Productos más vendidos"></canvas></div></div></div></div></div>` : ""}
     <div class="card-cem"><div class="card-h"><span>${title} <small class="text-muted fw-normal">· ${fdate(desde)} – ${fdate(hasta)}</small></span><span class="d-flex gap-2"><button class="btn btn-sm btn-outline-danger" id="r-pdf"><i class="bi bi-file-earmark-pdf me-1"></i>Reporte en PDF</button><button class="btn btn-sm btn-outline-success" id="r-xls"><i class="bi bi-file-earmark-excel me-1"></i>Exportar a Excel</button></span></div>
     ${rows.length ? `<div class="table-responsive"><table class="table table-cem"><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td>${typeof c === "number" ? nf(c, Number.isInteger(c) ? 0 : 2) : esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : emptyState("No hay resultados en el rango seleccionado", "bi-search")}</div>`;
     if (exps.length) {
       const pp = {}; exps.forEach(e => pp[e.pais] = (pp[e.pais] || 0) + 1); const pe = Object.entries(pp).sort((a, b) => b[1] - a[1]);
-      mkChart("rc-pais", {type:"pie", data:{labels:pe.map(x => EU[x[0]]), datasets:[{data:pe.map(x => x[1]), backgroundColor:PALETTE, borderWidth:2}]}, options:{maintainAspectRatio:false, plugins:{legend:{position:"right", labels:{boxWidth:10, font:{size:11}}}}}});
+      mkChart("rc-pais", {type:"pie", data:{labels:pe.map(x => EU[x[0]]), datasets:[{data:pe.map(x => x[1]), backgroundColor:palette(), borderWidth:2}]}, options:{maintainAspectRatio:false, plugins:{legend:{position:"right", labels:{boxWidth:10, font:{size:11}}}}}});
       const pv = {}; exps.forEach(e => e.lineas.forEach(l => pv[l.producto_id] = (pv[l.producto_id] || 0) + l.kg * l.precio)); const pvs = Object.entries(pv).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      mkChart("rc-prod", {type:"bar", data:{labels:pvs.map(x => prodName(+x[0])), datasets:[{data:pvs.map(x => Math.round(x[1])), backgroundColor:"#0e7c6b", borderRadius:6}]}, options:{indexAxis:"y", maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{color:"#eef3f2"}}, y:{grid:{display:false}}}}});
+      mkChart("rc-prod", {type:"bar", data:{labels:pvs.map(x => prodName(+x[0])), datasets:[{data:pvs.map(x => Math.round(x[1])), backgroundColor:chartAccent(), borderRadius:6}]}, options:{indexAxis:"y", maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{color:chartGrid()}}, y:{grid:{display:false}}}}});
     }
+    countUp($("#r-out"));
     const R = window._reporte;
     $("#r-pdf") && ($("#r-pdf").onclick = () => { try { const {jsPDF} = window.jspdf; const doc = new jsPDF({orientation:"landscape"});
-      doc.setFontSize(16); doc.text("CoffeeExport Manager · RITECH SAS", 14, 16); doc.setFontSize(11); doc.text(`${R.title} — ${fdate(R.desde)} a ${fdate(R.hasta)}`, 14, 24);
+      doc.setFontSize(16); doc.text("CoffeeExport Manager · RITECH SAS", 14, 16); doc.setFontSize(11); doc.text(`${R.title} - ${fdate(R.desde)} a ${fdate(R.hasta)}`, 14, 24);
       doc.autoTable({head:[R.head], body:R.rows.map(r => r.map(c => typeof c === "number" ? nf(c, Number.isInteger(c) ? 0 : 2) : c)), startY:30, headStyles:{fillColor:[14, 124, 107]}, styles:{fontSize:9}});
       doc.save(`reporte_${R.desde}_${R.hasta}.pdf`); toast("PDF generado"); } catch (e) { toast("No se pudo generar el PDF (librería no disponible sin conexión).", "danger"); } });
     $("#r-xls") && ($("#r-xls").onclick = () => { try { const ws = XLSX.utils.aoa_to_sheet([R.head, ...R.rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Reporte"); XLSX.writeFile(wb, `reporte_${R.desde}_${R.hasta}.xlsx`); toast("Excel generado"); } catch (e) { toast("No se pudo generar el Excel (librería no disponible sin conexión).", "danger"); } });
@@ -431,7 +432,7 @@ Views.config = () => {
   if (st.tab === "general") {
     tab.innerHTML = `<div class="row g-3"><div class="col-lg-8"><div class="card-cem card-b"><h2 class="fs-6 mb-3">Información de la empresa</h2><div class="row g-3">${field("Nombre de la empresa", "nombre", {value:em.nombre, col:"col-md-6"})}${field("NIT", "nit", {value:em.nit, col:"col-md-6"})}${field("Dirección", "direccion", {value:em.direccion})}${field("Correo", "email", {type:"email", value:em.email, col:"col-md-6"})}${field("Teléfono", "telefono", {value:em.telefono, col:"col-md-6"})}${field("Tasa de cambio EUR → USD", "tasa", {type:"number", value:m.tasaEurUsd, col:"col-md-6", attrs:'step="0.0001" min="0.1"', help:"Se usa para consolidar pagos en EUR a USD."})}</div>
       <div class="text-end mt-3"><button class="btn btn-cem" id="save-gen">Guardar cambios</button></div></div></div>
-      <div class="col-lg-4"><div class="card-cem card-b text-center mb-3"><div class="fw-semibold mb-2 text-start">Logo de la empresa</div><div class="p-3">${logoSVG(70, "#0e7c6b", "#fff")}<div class="fw-bold mt-2">CoffeeExport</div></div></div>
+      <div class="col-lg-4"><div class="card-cem card-b text-center mb-3"><div class="fw-semibold mb-2 text-start">Logo de la empresa</div><div class="p-3">${logoSVG(70, chartAccent(), "#fff")}<div class="fw-bold mt-2">CoffeeExport</div></div></div>
       <div class="card-cem card-b border-danger-subtle"><div class="fw-semibold text-danger mb-1">Datos de demostración</div><p class="small text-muted">Restablece todos los datos del prototipo a su estado inicial.</p><button class="btn btn-outline-danger btn-sm" id="reset-demo">Restablecer datos demo</button></div></div></div>`;
     $("#save-gen").onclick = () => { const f = formData(tab), t = parseFloat(f.tasa), err = [];
       if (!f.nombre) err.push("El nombre de la empresa es obligatorio."); if (f.email && !REQ_MAIL.test(f.email)) err.push("Correo no válido."); if (!(t > 0)) err.push("La tasa de cambio debe ser mayor que cero.");

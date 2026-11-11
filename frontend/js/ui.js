@@ -8,8 +8,8 @@ const nf = (n, d = 0) => Number(n).toLocaleString("es-CO", {minimumFractionDigit
 const usd = n => "$ " + nf(n, 2);
 const usd0 = n => "$ " + nf(n, 0);
 const kg = n => nf(n, 0) + " kg";
-const fdate = s => { if (!s) return "—"; const [y, m, d] = String(s).slice(0, 10).split("-"); return `${d}/${m}/${y}`; };
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const fdate = s => { if (!s) return "-"; const [y, m, d] = String(s).slice(0, 10).split("-"); return `${d}/${m}/${y}`; };
+const todayISO = () => iso(new Date());
 const byId = (list, id) => list.find(x => x.id === Number(id));
 
 function logoSVG(size = 40, bean = "#6ee0c6", stroke = "#0b3b35") {
@@ -94,7 +94,13 @@ function moverInventario({inv_id, tipo, kg: cant, motivo, exportacion_id = null,
   if (tipo === "ENTRADA") inv.kg += cant; else if (tipo === "SALIDA") inv.kg -= cant; else inv.kg = cant;   // AJUSTE: fija el nuevo stock
   DBx().movimientos.unshift({id:Store.nextId("movimientos"), inv_id, tipo, kg:cant, motivo, exportacion_id, usuario, fecha:new Date().toISOString()});
 }
-function descontarStock(ex, usuario) {   // RF-19: descuenta FIFO entre bodegas
+function descontarStock(ex, usuario) {   // RF-19: descuenta FIFO entre bodegas; es atómica (valida antes de mover nada)
+  const pedido = {};
+  ex.lineas.forEach(l => { pedido[l.producto_id] = (pedido[l.producto_id] || 0) + l.kg; });
+  for (const [pid, k] of Object.entries(pedido)) {
+    const disp = stockProducto(+pid);
+    if (k > disp) throw new Error(`Stock insuficiente de ${(byId(DBx().productos, pid) || {}).nombre}: solicitado ${nf(k)} kg, disponible ${nf(disp)} kg.`);
+  }
   for (const l of ex.lineas) { let falta = l.kg;
     for (const inv of DBx().inventario.filter(i => i.producto_id === l.producto_id && i.kg > 0).sort((a, b) => b.kg - a.kg)) {
       if (!falta) break; const t = Math.min(falta, inv.kg); moverInventario({inv_id:inv.id, tipo:"SALIDA", kg:t, motivo:`Exportación ${ex.codigo}`, exportacion_id:ex.id, usuario}); falta -= t; } }
@@ -108,5 +114,25 @@ function devolverStock(ex, usuario) {
 /* ---------- Gráficas ---------- */
 const _charts = [];
 const killCharts = () => { while (_charts.length) _charts.pop().destroy(); };
-const PALETTE = ["#0e7c6b","#e7a21a","#2b7bd1","#6f4e37","#8bc34a","#d64545","#7e57c2"];
-function mkChart(id, cfg) { const el = document.getElementById(id); if (!el || typeof Chart === "undefined") return; const c = new Chart(el, cfg); _charts.push(c); return c; }
+const isDark = () => document.documentElement.dataset.theme === "dark";
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const palette = () => isDark() ? ["#4fb58f","#f0a830","#6fa8dc","#c19a6b","#93c47d","#e0795f","#9fb0a8"] : ["#1b5645","#d98e04","#3b7fb8","#7a5a3e","#6aa84f","#c4553d","#5d6b66"];
+const chartAccent = () => cssv("--cem-chart"), chartGrid = () => cssv("--cem-grid");
+function mkChart(id, cfg) {
+  const el = document.getElementById(id); if (!el || typeof Chart === "undefined") return;
+  Chart.defaults.color = cssv("--cem-muted"); Chart.defaults.borderColor = cssv("--cem-line"); Chart.defaults.font.family = '"Geist", system-ui, sans-serif';
+  const c = new Chart(el, cfg); _charts.push(c); return c;
+}
+
+/* Valor de KPI que cuenta desde cero al aparecer (feedback de carga de datos) */
+const kv = (v, fmt = "n") => `<span data-count="${v}" data-fmt="${fmt}">${fmt === "usd0" ? usd0(v) : nf(v)}</span>`;
+function countUp(root = document) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  $$("[data-count]", root).forEach(el => {
+    const to = +el.dataset.count, usdf = el.dataset.fmt === "usd0", t0 = performance.now(), dur = 1000;
+    const paint = v => { el.textContent = usdf ? usd0(v) : nf(Math.round(v)); };
+    paint(0);
+    const tick = t => { const k = Math.min(1, (t - t0) / dur); paint(to * (1 - Math.pow(1 - k, 4))); if (k < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  });
+}

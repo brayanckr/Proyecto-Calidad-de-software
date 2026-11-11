@@ -17,7 +17,7 @@ function restoreSession() {
 /* ---------------- Login ---------------- */
 function showLogin(msg) {
   killCharts(); Session.user = null; $("#app").hidden = true; $("#login-view").hidden = false;
-  $("#hero-logo").innerHTML = logoSVG(96, "#6ee0c6", "#0b3b35");
+  $("#hero-logo").innerHTML = logoSVG(96, "#f0a830", "#123b30");
   $("#demo-users").innerHTML = Store.db.usuarios.filter(u => u.activo).map(u => `<button type="button" data-u="${esc(u.email)}">${esc(ROLES[u.rol].nombre)}</button>`).join("");
   $$("#demo-users [data-u]").forEach(b => b.onclick = () => { $("#login-email").value = b.dataset.u; $("#login-pass").value = "Demo2026*"; $("#login-pass").focus(); });
   const err = $("#login-error"); err.hidden = !msg; err.textContent = msg || "";
@@ -38,7 +38,7 @@ function doLogin(e) {
 /* ---------------- App ---------------- */
 function startApp(fresh) {
   const u = Session.user; $("#login-view").hidden = true; $("#app").hidden = false;
-  $("#side-logo").innerHTML = logoSVG(36, "#6ee0c6", "#0b3b35");
+  $("#side-logo").innerHTML = logoSVG(36, "#f0a830", "#123b30");
   $("#u-name").textContent = u.nombre.split(" ")[0] === "Administrador" ? "Admin" : u.nombre; $("#u-role").textContent = ROLES[u.rol].nombre; $("#u-mail").textContent = u.email;
   $("#u-avatar").textContent = u.nombre.split(" ").map(x => x[0]).slice(0, 2).join("").toUpperCase();
   $("#nav").innerHTML = MODULOS.filter(m => can(m.id)).map(m => `<li><a href="#${m.id}" data-m="${m.id}"><i class="bi ${m.icon}"></i><span>${m.label}</span></a></li>`).join("");
@@ -55,6 +55,7 @@ function route() {
   $$("#nav a").forEach(a => a.classList.toggle("active", a.dataset.m === mod));
   document.title = `${m.label} · CoffeeExport Manager`;
   Views[hash](); window.scrollTo(0, 0); const v = $("#view"); v.focus({preventScroll:true});
+  v.classList.add("enter"); countUp(v); clearTimeout(route._t); route._t = setTimeout(() => v.classList.remove("enter"), 1200);   // la entrada solo anima al cambiar de vista
 }
 function logout(msg) { clearSession(); showLogin(msg); }
 
@@ -95,6 +96,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#menu-toggle").onclick = () => { $("#sidebar").classList.add("open"); $("#backdrop").classList.add("show"); };
   $("#backdrop").onclick = closeSidebar;
   initSearch();
+  const paintTheme = () => { $("#theme-ic").className = "bi " + (isDark() ? "bi-sun" : "bi-moon-stars"); };
+  paintTheme();
+  $("#theme").onclick = () => { const t = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = t; document.documentElement.dataset.bsTheme = t;
+    try { localStorage.setItem("cem_theme", t); } catch (e) { /* sin almacenamiento */ } paintTheme(); if (Session.user) route(); };
   window.addEventListener("hashchange", route);
   ["click", "keydown", "mousemove", "touchstart"].forEach(ev => document.addEventListener(ev, () => { Session.last = Date.now(); }, {passive:true}));
   setInterval(() => { if (Session.user && Date.now() - Session.last > IDLE_MS) logout("Su sesión expiró por inactividad. Inicie sesión de nuevo."); }, 30000);

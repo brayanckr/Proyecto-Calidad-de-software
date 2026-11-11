@@ -3,109 +3,189 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CoffeeExport Manager · RITECH SAS</title>
-<meta name="description" content="Sistema web para administrar las exportaciones de café y cacao de Colombia hacia la Unión Europea.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3b35'/%3E%3Cellipse cx='32' cy='34' rx='13' ry='19' transform='rotate(25 32 34)' fill='%236ee0c6'/%3E%3Cpath d='M26 50C32 38 32 30 38 18' stroke='%230b3b35' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<link href="css/styles.css" rel="stylesheet">
+<title>CoffeeExport Manager | Café y cacao de Colombia para la Unión Europea</title>
+<meta name="description" content="Sistema web de RITECH SAS para administrar clientes, inventario, documentos aduaneros y pagos de las exportaciones de café y cacao de Colombia hacia la Unión Europea.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23123b30'/%3E%3Cellipse cx='32' cy='34' rx='13' ry='19' transform='rotate(25 32 34)' fill='%23f0a830'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/geist-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<script>/* tema antes del primer pintado: evita parpadeo */
+(function(){try{var t=localStorage.getItem("cem_theme");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}document.documentElement.classList.add("js")})();
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
+<a class="skip" href="#catalogo">Saltar al contenido</a>
+<div id="top-sentinel" aria-hidden="true"></div>
 
-<!-- ============ LOGIN ============ -->
-<section id="login-view" hidden>
-  <div class="login-hero">
-    <div id="hero-logo"></div>
-    <h1>CoffeeExport<small>Manager</small></h1>
-    <p class="lead">Conectando el sabor de Colombia<br>con el mundo</p>
-    <p class="sub">Exportación de café y cacao a la Unión Europea</p>
-    <div class="mt-5 small opacity-75">© 2026 RITECH SAS</div>
-  </div>
-  <div class="login-panel">
-    <form class="login-box" id="login-form" novalidate autocomplete="off">
-      <h2>Iniciar sesión</h2>
-      <p class="text-muted mb-4">Ingresa tus credenciales para acceder al sistema</p>
-      <div id="login-error" class="alert alert-danger py-2 small" role="alert" hidden></div>
-      <div class="mb-3 input-icon">
-        <i class="bi bi-envelope lead-i"></i>
-        <input type="email" class="form-control" id="login-email" placeholder="Usuario o correo electrónico" aria-label="Correo electrónico" required>
-      </div>
-      <div class="mb-3 input-icon">
-        <i class="bi bi-lock lead-i"></i>
-        <input type="password" class="form-control" id="login-pass" placeholder="Contraseña" aria-label="Contraseña" required>
-        <button type="button" class="toggle-pass" id="toggle-pass" aria-label="Mostrar u ocultar contraseña"><i class="bi bi-eye"></i></button>
-      </div>
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="form-check"><input class="form-check-input" type="checkbox" id="login-remember"><label class="form-check-label small" for="login-remember">Recordarme</label></div>
-        <a href="#" class="small" id="forgot">¿Olvidaste tu contraseña?</a>
-      </div>
-      <button class="btn btn-cem w-100 py-2" type="submit">Iniciar sesión</button>
-      <div class="demo-users mt-4">
-        <div class="small text-muted"><i class="bi bi-info-circle"></i> Modo demostración · clic para autocompletar un rol</div>
-        <div id="demo-users"></div>
-      </div>
-    </form>
-  </div>
-</section>
-
-<!-- ============ APP ============ -->
-<div id="app" hidden>
-  <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
-    <div class="brand"><span id="side-logo"></span><div class="name">CoffeeExport<small>Manager</small></div></div>
-    <ul class="nav-cem" id="nav"></ul>
-    <div class="side-foot">RITECH SAS · Sprint 2<br>Prototipo de interfaz</div>
-  </aside>
-  <div class="sidebar-backdrop" id="backdrop"></div>
-  <div class="main">
-    <header class="topbar">
-      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
-      <div class="search">
-        <i class="bi bi-search"></i>
-        <input type="search" class="form-control form-control-sm" id="gsearch" placeholder="Buscar…" aria-label="Búsqueda global" autocomplete="off">
-        <div class="search-results" id="gsearch-res" hidden></div>
-      </div>
-      <div class="ms-auto d-flex align-items-center gap-3">
-        <div class="dropdown">
-          <button class="bell" data-bs-toggle="dropdown" aria-label="Notificaciones"><i class="bi bi-bell"></i><span class="dot" id="bell-n" hidden>0</span></button>
-          <div class="dropdown-menu dropdown-menu-end p-0" style="width:320px;max-height:380px;overflow:auto" id="bell-menu"></div>
-        </div>
-        <div class="dropdown">
-          <button class="btn p-0 d-flex align-items-center gap-2 border-0" data-bs-toggle="dropdown" aria-label="Menú de usuario">
-            <span class="avatar" id="u-avatar">A</span>
-            <span class="text-start user-meta lh-1"><span class="fw-semibold small d-block" id="u-name">Admin</span><small class="text-muted" id="u-role" style="font-size:.7rem">Administrador</small></span>
-            <i class="bi bi-chevron-down small text-muted"></i>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><span class="dropdown-item-text small text-muted" id="u-mail"></span></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
-          </ul>
-        </div>
-      </div>
-    </header>
-    <main class="content" id="view" tabindex="-1"></main>
-  </div>
-</div>
-
-<div class="modal fade" id="modal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="modal-dlg">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer" id="modal-foot"></div>
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#inicio" aria-label="CoffeeExport Manager, inicio">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="var(--forest)"/><ellipse cx="32" cy="34" rx="12" ry="18" transform="rotate(25 32 34)" fill="var(--accent)"/><path d="M26 50C32 38 32 30 38 18" stroke="var(--forest)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <span>CoffeeExport<small>Manager</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Secciones">
+      <a href="#catalogo">Catálogo</a><a href="#proceso">Proceso</a><a href="#cifras">Cifras</a><a href="#normativa">Normativa</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme" type="button" aria-label="Cambiar tema claro u oscuro"><i class="ph ph-moon" id="theme-ic"></i></button>
+      <a class="btn btn-solid" href="app.html">Acceder al sistema</a>
     </div>
   </div>
-</div>
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+</header>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<main id="inicio">
+  <!-- HERO -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <h1 data-hero style="--d:0ms">Café y cacao de Colombia hacia Europa</h1>
+      <p class="lead" data-hero style="--d:120ms">Pedidos, inventario, documentos aduaneros y pagos de cada exportación a la Unión Europea, reunidos en un solo sistema.</p>
+      <div class="cta-row" data-hero style="--d:240ms">
+        <a class="btn btn-solid btn-lg" href="#catalogo">Ver catálogo <i class="ph ph-arrow-down"></i></a>
+        <a class="btn btn-ghost btn-lg" href="app.html">Acceder al sistema <i class="ph ph-arrow-right"></i></a>
+      </div>
+    </div>
+    <div class="hero-media" data-hero style="--d:100ms">
+      <div class="hero-plate" aria-hidden="true"></div>
+      <img class="hero-img" src="https://images.unsplash.com/photo-1672851612794-6687bf0bf1a3?auto=format&fit=crop&w=1100&q=75" width="1100" height="1375" alt="Ramas de cafeto con frutos verdes en una plantación de Colombia" fetchpriority="high">
+    </div>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <section class="section wrap" id="catalogo" aria-labelledby="cat-h">
+    <div class="sec-head" data-reveal>
+      <h2 id="cat-h">Catálogo de variedades</h2>
+      <p>Café y cacao disponibles hoy para exportación, con precio de lista en USD por kilogramo.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Filtrar por tipo" data-reveal style="--d:80ms">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">Todos <span id="n-all"></span></button>
+      <button class="chip" type="button" data-f="CAFE" aria-pressed="false">Café <span id="n-cafe"></span></button>
+      <button class="chip" type="button" data-f="CACAO" aria-pressed="false">Cacao <span id="n-cacao"></span></button>
+    </div>
+    <div class="grid" id="grid" aria-live="polite"></div>
+  </section>
+
+  <!-- PROCESO -->
+  <section class="section process" id="proceso" aria-labelledby="proc-h">
+    <div class="wrap proc-in">
+      <div class="proc-side">
+        <div class="proc-sticky">
+          <h2 id="proc-h" data-reveal>De la finca al puerto, sin perder el control</h2>
+          <ol class="rail" id="rail" aria-hidden="true">
+            <li data-i="0">Registrar</li><li data-i="1">Exportar</li><li data-i="2">Documentar</li><li data-i="3">Cobrar</li>
+          </ol>
+          <img class="proc-img" src="https://images.unsplash.com/photo-1742576437150-3a79cae681f2?auto=format&fit=crop&w=900&q=70" width="900" height="700" loading="lazy" alt="Buque portacontenedores atracado en el puerto de Hamburgo">
+        </div>
+      </div>
+      <div class="proc-steps">
+        <article class="step" data-i="0" data-reveal>
+          <i class="ph ph-users-three"></i>
+          <h3>Registrar</h3>
+          <p>Cada cliente de la Unión Europea y cada producto del catálogo quedan en una base única, con consentimiento de datos y precio vigente.</p>
+        </article>
+        <article class="step" data-i="1" data-reveal>
+          <i class="ph ph-package"></i>
+          <h3>Exportar</h3>
+          <p>Un asistente de cuatro pasos crea el pedido con puertos, fecha de envío y productos. Valida el stock y descuenta el inventario al confirmar.</p>
+        </article>
+        <article class="step" data-i="2" data-reveal>
+          <i class="ph ph-file-text"></i>
+          <h3>Documentar</h3>
+          <p>Certificado de origen, fitosanitario, factura y declaración aduanera se adjuntan en PDF. Sin ellos, el envío no pasa a tránsito.</p>
+        </article>
+        <article class="step" data-i="3" data-reveal>
+          <i class="ph ph-currency-circle-dollar"></i>
+          <h3>Cobrar</h3>
+          <p>Los pagos en USD o EUR se concilian por exportación y los reportes salen en PDF y Excel para cualquier rango de fechas.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIFRAS (bento) -->
+  <section class="section wrap" id="cifras" aria-labelledby="cif-h">
+    <div class="sec-head" data-reveal>
+      <h2 id="cif-h">El sistema en cifras</h2>
+      <p>Datos del prototipo con información de demostración.</p>
+    </div>
+    <div class="bento">
+      <article class="tile tile-photo" data-reveal>
+        <img src="https://images.unsplash.com/photo-1493925410384-84f842e616fb?auto=format&fit=crop&w=1000&q=70" width="1000" height="1000" loading="lazy" alt="Manos sosteniendo granos de cacao secos">
+        <div class="tile-body"><strong class="num" id="k-exp" data-count="0">0</strong><span>exportaciones registradas</span></div>
+      </article>
+      <article class="tile tile-forest" data-reveal style="--d:80ms">
+        <strong class="num" id="k-cli" data-count="0">0</strong><span>clientes activos en la UE</span>
+      </article>
+      <article class="tile tile-line" data-reveal style="--d:140ms">
+        <strong class="num" id="k-kg" data-count="0">0</strong><span>kg en inventario</span>
+      </article>
+      <article class="tile tile-tint" data-reveal style="--d:200ms">
+        <span class="tile-title">Países de destino</span>
+        <ul class="tags" id="k-paises"></ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- NORMATIVA -->
+  <section class="section wrap norm" id="normativa" aria-labelledby="norm-h">
+    <div class="norm-media" data-reveal>
+      <img src="https://images.unsplash.com/photo-1573710661345-610f790e1218?auto=format&fit=crop&w=1000&q=70" width="1000" height="1200" loading="lazy" alt="Frutos de cacao maduros colgando de la rama">
+    </div>
+    <div class="norm-copy">
+      <h2 id="norm-h" data-reveal>Pensado para la normativa europea</h2>
+      <div class="acc" data-reveal style="--d:80ms">
+        <div class="acc-item open">
+          <button type="button" class="acc-btn" aria-expanded="true" aria-controls="a1" id="b1"><i class="ph ph-shield-check"></i>Protección de datos (GDPR)<i class="ph ph-caret-down caret"></i></button>
+          <div class="acc-panel" id="a1" role="region" aria-labelledby="b1"><div><p>Registramos el consentimiento de cada cliente europeo y su fecha. Los clientes se desactivan, no se borran, para conservar el historial de sus exportaciones.</p></div></div>
+        </div>
+        <div class="acc-item">
+          <button type="button" class="acc-btn" aria-expanded="false" aria-controls="a2" id="b2"><i class="ph ph-seal-check"></i>Documentación aduanera<i class="ph ph-caret-down caret"></i></button>
+          <div class="acc-panel" id="a2" role="region" aria-labelledby="b2"><div><p>Cada exportación exige certificado de origen, certificado fitosanitario, factura comercial y declaración aduanera antes de pasar a tránsito.</p></div></div>
+        </div>
+        <div class="acc-item">
+          <button type="button" class="acc-btn" aria-expanded="false" aria-controls="a3" id="b3"><i class="ph ph-currency-eur"></i>Pagos en dólares y euros<i class="ph ph-caret-down caret"></i></button>
+          <div class="acc-panel" id="a3" role="region" aria-labelledby="b3"><div><p>Los pagos se registran solo en USD o EUR y el saldo pendiente se calcula por exportación con una tasa de cambio configurable.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="final">
+    <img src="https://images.unsplash.com/photo-1590497008432-598f04441de8?auto=format&fit=crop&w=1800&q=70" width="1800" height="1000" loading="lazy" alt="Terminal portuaria con contenedores y grúas al anochecer">
+    <div class="final-in wrap" data-reveal>
+      <h2>Tu próxima exportación empieza aquí</h2>
+      <p>Entra con tu usuario y continúa donde lo dejaste.</p>
+      <a class="btn btn-light btn-lg" href="app.html">Acceder al sistema <i class="ph ph-arrow-right"></i></a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div class="foot-brand"><strong>CoffeeExport Manager</strong><span>RITECH SAS</span></div>
+    <nav aria-label="Pie de página"><a href="#catalogo">Catálogo</a><a href="#proceso">Proceso</a><a href="#normativa">Normativa</a></nav>
+    <span class="foot-note">Proyecto de Calidad de Software. Prototipo de interfaz.</span>
+  </div>
+</footer>
+
+<!-- Detalle de producto -->
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <button class="dlg-x icon-btn" type="button" id="dlg-x" aria-label="Cerrar detalle"><i class="ph ph-x"></i></button>
+  <div class="dlg-in">
+    <img id="dlg-img" alt="" width="600" height="750">
+    <div class="dlg-body">
+      <h3 id="dlg-title"></h3>
+      <p class="dlg-sub" id="dlg-sub"></p>
+      <dl class="specs" id="dlg-specs"></dl>
+      <a class="btn btn-solid" href="app.html#productos">Acceder al sistema <i class="ph ph-arrow-right"></i></a>
+    </div>
+  </div>
+</dialog>
+
 <script src="js/data.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/views.js"></script>
-<script src="js/app.js"></script>
+<script src="js/landing.js"></script>
 </body>
 </html>

@@ -45,7 +45,8 @@ const ESTADOS_EXP = {BORRADOR:["Borrador","st-gray"],EN_PREPARACION:["En prepara
 
 const DB_KEY = "cem_db_v1";
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const iso = d => d.toISOString().slice(0, 10);
+/* Fecha local AAAA-MM-DD. No usa toISOString(): en UTC, después de las 7 p. m. en Colombia ya es el día siguiente. */
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 function seed() {
   const hoy = new Date();
@@ -129,3 +130,10 @@ const Store = {
   reset() { try { localStorage.removeItem(DB_KEY); } catch (e) {} this.db = seed(); this.save(); },
   nextId(k) { const n = this.db.meta.nextId; n[k] = (n[k] || 0) + 1; return n[k]; },
 };
+
+/* Fotos temporales de Unsplash por código de producto (reemplazar por fotos propias).
+   Compartidas por la landing y por el listado de productos del sistema. */
+const FOTO_PRODUCTO = {"CAF-ARA-01":"1447933601403-0c6688de566e", "CAF-ROB-01":"1513530176992-0cf39c4cbed4", "CAF-CAS-01":"1675306408031-a9aad9f23308",
+                       "CAC-GRA-01":"1507576164121-220762647800", "CAC-POL-01":"1602101025912-f4a36c505e28", "CAC-NIB-01":"1545567724-9b16e57c906d"};
+const FOTO_TIPO = {CAFE:"1447933601403-0c6688de566e", CACAO:"1545567724-9b16e57c906d"};
+const fotoProducto = (p, w = 600) => `https://images.unsplash.com/photo-${FOTO_PRODUCTO[p.codigo] || FOTO_TIPO[p.tipo]}?auto=format&fit=crop&q=70&w=${w}`;
