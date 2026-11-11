@@ -1,0 +1,92 @@
+▶ Autenticación y control de acceso
+  ✔ PI-01 [HU-01][RF-01] un usuario activo inicia sesión y llega al dashboard con sus KPI (2164.7513ms)
+  ✔ PI-02 [HU-01][RF-01] una contraseña incorrecta muestra un mensaje genérico y no abre sesión (2081.2636ms)
+  ✔ PI-03 [HU-01][RNF-04] un intento básico de inyección SQL en el login es rechazado (522.7083ms)
+  ✔ PI-04 [HU-06][RNF-03] el operador de bodega solo ve Productos e Inventario y es redirigido si fuerza otra ruta (3167.3333ms)
+  ✔ PI-05 [HU-06][RF-04] el gerente ve Clientes en solo lectura (sin botón para crear) (1098.7937ms)
+  ✔ PI-06 [HU-01][RF-02] la sesión expira tras 30 minutos de inactividad y vuelve al login con aviso (645.1421ms)
+✔ Autenticación y control de acceso (9953.0084ms)
+▶ Clientes
+  ✔ PI-07 [HU-02][RF-05] el alta de un cliente válido queda guardada y aparece en el listado (5150.7711ms)
+  ✔ PI-08 [HU-02][RF-05] sin país de la UE, el formulario no guarda y el selector solo ofrece países de la UE (3237.7796ms)
+  ✔ PI-09 [HU-02][RF-05] una identificación fiscal duplicada se rechaza (1980.3907ms)
+  ✔ PI-10 [HU-02][RF-08][RR-05] sin consentimiento GDPR no se puede registrar el cliente (1957.4716ms)
+  ✔ PI-11 [HU-02][RNF-04] un nombre con HTML se muestra como texto y no ejecuta código (XSS) (2609.3911ms)
+  ✔ PI-12 [HU-02][RF-06] desactivar un cliente lo marca inactivo sin borrarlo (2383.1031ms)
+✔ Clientes (17320.3974ms)
+▶ Productos e inventario
+  ✔ PI-13 [HU-03][RF-09] el alta de producto es válida con precio positivo y se rechaza con precio negativo (2147.9702ms)
+  ✔ PI-14 [HU-03][RF-10] el filtro por tipo del catálogo muestra solo cacao (2873.0165ms)
+  ✔ PI-15 [HU-04][RF-13] una entrada de inventario actualiza el stock y queda en el historial de movimientos (3782.9013ms)
+  ✔ PI-16 [HU-04][RF-14] una salida mayor al stock se rechaza con el stock disponible y no cambia el inventario (3101.9168ms)
+✔ Productos e inventario (11906.6751ms)
+▶ Exportaciones, documentos y pagos
+  ✔ PI-17 [HU-11][RF-16][RF-19] el asistente de 4 pasos crea la exportación y descuenta el inventario (2747.8217ms)
+  ✔ PI-18 [HU-11][RF-17] el asistente bloquea el paso 3 si la cantidad supera el stock disponible (2653.572ms)
+  ✔ PI-19 [HU-15][RF-21] no se puede pasar a En tránsito sin los 4 documentos obligatorios, y sí con ellos (9656.1905ms)
+  ✔ PI-20 [HU-12][RF-19] cancelar una exportación En preparación devuelve el stock descontado (3460.8269ms)
+  ✔ PI-21 [HU-14][RF-20] la carga de documentos rechaza archivos que no son PDF (3375.5365ms)
+  ✔ PI-22 [HU-16][HU-17][RF-23][RF-25] un pago en EUR se registra como pendiente y al confirmarlo suma al saldo en USD (4070.3727ms)
+✔ Exportaciones, documentos y pagos (25965.6063ms)
+▶ Reportes
+  ✔ PI-23 [HU-18][RF-26] un rango con fecha final anterior a la inicial muestra error y no genera el reporte (2563.2238ms)
+  ✔ PI-24 [HU-18][HU-19][RF-26][RF-27] un reporte válido muestra KPI y se exporta a Excel y a PDF (3217.4751ms)
+✔ Reportes (5781.4419ms)
+▶ Landing, tema y persistencia
+  ✔ PI-25 [HU-03][RF-10] el catálogo de la landing filtra por tipo y abre el detalle del producto (3579.3312ms)
+  ✔ PI-26 [RNF-08] el tema oscuro elegido en la landing se conserva al entrar al sistema (2221.9384ms)
+  ✔ PI-27 [RNF-13] los datos creados sobreviven a recargar la página y a cerrar y abrir sesión (3290.1155ms)
+  ✔ PI-28 [RNF-08] la búsqueda global encuentra clientes por nombre y navega al módulo (1287.4513ms)
+✔ Landing, tema y persistencia (10380.1777ms)
+▶ Datos iniciales
+  ✔ PU-01 [HU-04][RF-12] el inventario inicial suma 12.450 kg en 7 registros (7.0574ms)
+  ✔ PU-02 [HU-02][RF-05] 8 clientes (7 activos), todos de la UE y con NIF único (5.1635ms)
+  ✔ PU-03 [HU-03][RF-09] 6 productos con precio > 0 y código único (6.0219ms)
+  ✔ PU-04 [HU-11][RF-16] 24 exportaciones con id único y código EXP-AAAA-NNNN (4.0821ms)
+  ✔ PU-05 [HU-15][RF-21] las exportaciones En tránsito o Completadas tienen los documentos obligatorios (4.9391ms)
+✔ Datos iniciales (28.6243ms)
+▶ Almacenamiento local (Store)
+  ✔ PU-06 [RNF-13] load() crea y persiste los datos cuando no hay almacenamiento previo (4.9437ms)
+  ✔ PU-07 [RNF-13] save() y load() conservan los cambios; reset() restaura los datos de demostración (8.9497ms)
+  ✔ PU-08 nextId() incrementa por colección sin mezclar contadores (5.1634ms)
+✔ Almacenamiento local (Store) (19.418ms)
+▶ Utilidades de formato
+  ✔ PU-09 [RNF-04] esc() neutraliza < > & " ' para evitar XSS (4.0167ms)
+  ✔ PU-10 [RR-07] nf(), usd() y kg() formatean en es-CO (19.1969ms)
+  ✔ PU-11 fdate() convierte AAAA-MM-DD a DD/MM/AAAA y tolera vacíos (5.5896ms)
+  ✔ PU-12 paginate() calcula páginas, rangos y limita la página fuera de rango (5.6208ms)
+✔ Utilidades de formato (35.079ms)
+▶ Cálculos de negocio
+  ✔ PU-13 [RF-23][RR-07] aUSD() convierte EUR con la tasa configurada y no altera USD (4.4072ms)
+  ✔ PU-14 [HU-11][RF-17] totalExp() y kgExp() suman todas las líneas (3.5419ms)
+  ✔ PU-15 [HU-04][RF-12] stockProducto() suma las bodegas del producto (5.259ms)
+  ✔ PU-16 [HU-15][RF-21] docsFaltantes() lista los obligatorios sin cargar e ignora los rechazados (4.6697ms)
+  ✔ PU-17 [HU-17][RF-24] pagadoExp() cuenta solo pagos confirmados salvo que se pida lo contrario (4.0836ms)
+  ✔ PU-18 [HU-09][RF-15] alertasStock() detecta productos bajo el mínimo y no los demás (5.3636ms)
+✔ Cálculos de negocio (27.7527ms)
+▶ Movimientos de inventario
+  ✔ PU-19 [HU-04][RF-13] una ENTRADA suma al stock y registra el movimiento (4.4392ms)
+  ✔ PU-20 [HU-04][RF-13] una SALIDA descuenta del stock (4.2753ms)
+  ✔ PU-21 [HU-04][RF-14] una SALIDA mayor al stock se rechaza y el stock no cambia (5.3708ms)
+  ✔ PU-22 [HU-04][RF-13] cantidades 0, negativas o no numéricas se rechazan (4.4845ms)
+  ✔ PU-23 [HU-04][RF-13] un AJUSTE fija el stock al valor indicado (3.7494ms)
+✔ Movimientos de inventario (22.8057ms)
+▶ Descuento de stock (RF-19)
+  ✔ PU-24 [HU-11][RF-19] descontarStock() reparte entre bodegas (la de mayor stock primero) y marca descontado (4.2487ms)
+  ✔ PU-25 [HU-11][RF-19] con stock insuficiente lanza error y NO descuenta nada (operación atómica) (4.354ms)
+  ✔ PU-26 [HU-12][RF-19] devolverStock() restituye lo descontado y desmarca la exportación (5.8434ms)
+✔ Descuento de stock (RF-19) (14.7358ms)
+▶ Fechas, permisos y catálogo
+  ✔ PU-27 [HU-11][RF-18] todayISO() devuelve la fecha LOCAL (Colombia) aunque en UTC ya sea el día siguiente (7.5924ms)
+  ✔ PU-28 [HU-06][RF-04] la matriz de permisos respeta los roles (4.4263ms)
+  ✔ PU-29 [HU-14][RR-06] los documentos obligatorios pertenecen a los tipos de documento válidos (3.7645ms)
+  ✔ PU-30 [HU-03][RF-10] fotoProducto() usa la foto por código y una de respaldo por tipo (3.7815ms)
+✔ Fechas, permisos y catálogo (19.8848ms)
+ℹ tests 58
+ℹ suites 13
+ℹ pass 58
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82182.4402
